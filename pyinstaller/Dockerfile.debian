@@ -1,0 +1,53 @@
+#FROM martadinata666/debian:latest as builder
+#RUN apt-get update && \
+#    DEBIAN_FRONTEND=noninteractive apt-get install -y curl git ca-certificates build-essential zlib1g-dev \
+#		libbz2-dev libssl-dev libreadline-dev libffi-dev \
+#		upx-ucl python3 python3-pip git
+
+#COPY . $HOME/yacron
+#WORKDIR $HOME/yacron
+#RUN pip3 install --upgrade pip setuptools wheel distlib pyinstaller
+#RUN git status
+#RUN python3 setup.py install
+#RUN python3 pyinstaller/yacron --version
+#RUN pyinstaller pyinstaller/yacron.spec
+#RUN ls -sFh dist/yacron
+#RUN dist/yacron --version
+
+#FROM martadinata666/debian:latest
+#RUN sudo apt update && sudo apt install -y --no-install-recommends libexpat1 && sudo apt clean && sudo rm -rf /var/lib/apt/lists/*
+#COPY --from=builder /yacron/dist/yacron /usr/local/bin/yacron
+#RUN yacron --version
+
+FROM python:3.9-buster as builder
+USER root
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
+                curl git ca-certificates build-essential zlib1g-dev \
+                libbz2-dev libssl-dev libreadline-dev libffi-dev \
+                upx-ucl python3 \
+                build-essential git autotools-dev autoconf automake libtool gettext gawk \
+                python3-pip python3-dev libcurl4-gnutls-dev libgnutls28-dev libvips-dev python3-setuptools grc \
+                wget unzip python3-dev ca-certificates libva2 libva-dev sqlite3 libdrm2
+
+
+ENV PATH=/yacron/bin:$PATH
+COPY pyinstaller/requirements.txt /root
+RUN pip3 install -U pip
+RUN pip3 install -r /root/requirements.txt
+
+COPY . /root/yacron
+WORKDIR /root/yacron
+RUN git status
+RUN python3 setup.py install
+RUN python3 pyinstaller/yacron --version
+RUN pyinstaller pyinstaller/yacron.spec
+RUN ls -sFh dist/yacron
+RUN dist/yacron --version
+
+FROM martadinata666/debian:latest
+RUN sudo apt update && sudo apt install -y --no-install-recommends libexpat1 && sudo apt clean && sudo rm -rf /var/lib/apt/lists/*
+COPY --from=builder /root/yacron/dist/yacron /usr/local/bin/yacron
+RUN yacron --version
+
+
