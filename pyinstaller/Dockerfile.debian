@@ -25,7 +25,10 @@ RUN ls -sFh dist/yacron
 RUN dist/yacron --version
 
 FROM debian:latest
-RUN sudo apt update && sudo apt install -y --no-install-recommends libexpat1 && sudo apt clean && sudo rm -rf /var/lib/apt/lists/*
+RUN apt update && \
+    apt install -y --no-install-recommends libexpat1 && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
 COPY --from=builder /root/yacron/dist/yacron /usr/local/bin/yacron
 RUN yacron --version
 
