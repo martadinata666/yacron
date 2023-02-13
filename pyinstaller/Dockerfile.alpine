@@ -1,10 +1,10 @@
 FROM python:3.9-alpine3.17 as builder
 USER root
-RUN apk add curl build-base git zlib-dev
+RUN apk add curl build-base git zlib-dev musl-dev libffi-dev pwgen
 ENV PATH=/yacron/bin:$PATH
-COPY pyinstaller/requirements.txt /root
+COPY pyinstaller/requirements310.txt /root
 RUN pip3 install -U pip
-RUN pip3 install -r /root/requirements.txt
+RUN pip3 install -r /root/requirements310.txt
 
 COPY . /root/yacron
 WORKDIR /root/yacron
@@ -16,7 +16,7 @@ RUN ls -sFh dist/yacron
 RUN dist/yacron --version
 
 FROM alpine:3.17
-#RUN sudo apt update && sudo apt install -y --no-install-recommends libexpat1 && sudo apt clean && sudo rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache bash
 COPY --from=builder /root/yacron/dist/yacron /usr/local/bin/yacron
 RUN yacron --version
 
